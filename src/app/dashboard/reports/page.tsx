@@ -26,6 +26,55 @@ interface ReportData {
   byMonth: MonthStat[]
 }
 
+function ExportButton() {
+  const [loading, setLoading] = useState(false)
+
+  async function handleExport() {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/export')
+      const rows = await res.json()
+      if (!Array.isArray(rows) || rows.length === 0) {
+        alert('No shifts to export.')
+        setLoading(false)
+        return
+      }
+      const headers = Object.keys(rows[0])
+      const csv = [
+        headers.join(','),
+        ...rows.map((row: Record<string, string | number>) =>
+          headers.map(h => {
+            const val = row[h] ?? ''
+            return typeof val === 'string' && val.includes(',') ? `"${val}"` : val
+          }).join(',')
+        )
+      ].join('\n')
+
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `shiftsync-export-${new Date().toISOString().split('T')[0]}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error(err)
+      alert('Export failed.')
+    }
+    setLoading(false)
+  }
+
+  return (
+    <button
+      onClick={handleExport}
+      disabled={loading}
+      className="px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-md hover:bg-slate-700 disabled:opacity-50"
+    >
+      {loading ? 'Exporting...' : 'Export CSV'}
+    </button>
+  )
+}
+
 export default function ReportsPage() {
   const [data, setData] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -42,7 +91,10 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">Reports</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-slate-900">Reports</h1>
+        <ExportButton />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
