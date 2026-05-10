@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import FortnightlyTracker from '@/components/dashboard/FortnightlyTracker'
+import IncomeGoalTracker from '@/components/dashboard/IncomeGoalTracker'
 import { Card, CardContent } from '@/components/ui/card'
 import { Briefcase, Clock, DollarSign } from 'lucide-react'
 
@@ -69,6 +70,7 @@ export default async function DashboardPage() {
       </div>
 
       <FortnightlyTracker />
+      <IncomeGoalTracker />
     </div>
   )
 }
