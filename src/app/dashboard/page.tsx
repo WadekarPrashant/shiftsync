@@ -13,8 +13,6 @@ export default async function DashboardPage() {
   const [shifts, jobs] = await Promise.all([
     prisma.shift.findMany({
       where: { userId: user.id },
-      include: { job: { select: { name: true, color: true } } },
-      orderBy: { date: 'desc' },
     }),
     prisma.job.findMany({
       where: { userId: user.id, isActive: true },
@@ -23,14 +21,6 @@ export default async function DashboardPage() {
 
   const totalHours = shifts.reduce((sum, s) => sum + s.hoursWorked, 0)
   const totalWage = shifts.reduce((sum, s) => sum + s.wageEarned, 0)
-
-  const trackerShifts = shifts.map(s => ({
-    id: s.id,
-    date: s.date.toISOString(),
-    hoursWorked: s.hoursWorked,
-    wageEarned: s.wageEarned,
-    job: s.job,
-  }))
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -78,7 +68,7 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <FortnightlyTracker shifts={trackerShifts} />
+      <FortnightlyTracker />
     </div>
   )
 }

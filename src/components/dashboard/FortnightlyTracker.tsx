@@ -1,93 +1,99 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { getCurrentFortnight, getAdjacentFortnight, type FortnightPeriod } from '@/lib/fortnightly'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-interface Shift {
-  id: string
-  date: string
+interface FortnightData {
   hoursWorked: number
+  hoursRemaining: number
   wageEarned: number
-  job: { name: string; color: string }
+  percentage: number
+  shiftCount: number
+  windowStart: string
+  windowEnd: string
+  status: 'safe' | 'warning' | 'danger'
 }
 
-interface Props {
-  shifts: Shift[]
-}
+export default function FortnightlyTracker() {
+  const [data, setData] = useState<FortnightData | null>(null)
+  const [loading, setLoading] = useState(true)
 
-export default function FortnightlyTracker({ shifts }: Props) {
-  const [period, setPeriod] = useState<FortnightPeriod>(getCurrentFortnight)
+  useEffect(() => {
+    fetch('/api/fortnightly')
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
 
-  const periodShifts = shifts.filter(s => {
-    const d = new Date(s.date)
-    return d >= period.start && d <= period.end
-  })
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="h-32 animate-pulse bg-slate-100 rounded" />
+        </CardContent>
+      </Card>
+    )
+  }
 
-  const totalHours = periodShifts.reduce((sum, s) => sum + s.hoursWorked, 0)
-  const totalWage = periodShifts.reduce((sum, s) => sum + s.wageEarned, 0)
+  if (!data) return null
+
+  const start = new Date(data.windowStart).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+  const end = new Date(data.windowEnd).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+
+  const barColor = data.status === 'danger' ? '#ef4444' : data.status === 'warning' ? '#f59e0b' : '#22c55e'
+  const statusLabel = data.status === 'danger' ? 'Limit Near' : data.status === 'warning' ? 'Warning' : 'On Track'
+  const statusBg = data.status === 'danger' ? 'bg-red-50 border-red-200' : data.status === 'warning' ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200'
+  const statusText = data.status === 'danger' ? 'text-red-700' : data.status === 'warning' ? 'text-yellow-700' : 'text-green-700'
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className={`border-2 ${statusBg}`}>
+      <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Fortnightly Summary</CardTitle>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 w-7 p-0"
-              onClick={() => setPeriod(p => getAdjacentFortnight(p, 'prev'))}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-xs text-slate-500 px-2 min-w-36 text-center">{period.label}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 w-7 p-0"
-              onClick={() => setPeriod(p => getAdjacentFortnight(p, 'next'))}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+          <CardTitle className="text-lg">Fortnightly Visa Hours</CardTitle>
+          <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${statusText} ${statusBg}`}>
+            {statusLabel}
+          </span>
         </div>
+        <p className="text-xs text-slate-500">{start} — {end} · rolling 14-day window</p>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-slate-50 rounded-lg p-3">
-            <p className="text-xs text-slate-500 mb-1">Hours worked</p>
-            <p className="text-2xl font-bold text-slate-900">{totalHours.toFixed(1)}</p>
+      <CardContent className="space-y-4">
+        <div className="flex items-end justify-between">
+          <div>
+            <span className="text-5xl font-bold">{data.hoursWorked.toFixed(1)}</span>
+            <span className="text-slate-500 ml-2 text-lg">/ 48 hrs used</span>
           </div>
-          <div className="bg-slate-50 rounded-lg p-3">
-            <p className="text-xs text-slate-500 mb-1">Wages earned</p>
-            <p className="text-2xl font-bold text-slate-900">${totalWage.toFixed(2)}</p>
+          <div className="text-right">
+            <p className="text-3xl font-bold" style={{ color: barColor }}>
+              {data.hoursRemaining.toFixed(1)} hrs
+            </p>
+            <p className="text-sm text-slate-500">remaining this fortnight</p>
           </div>
         </div>
 
-        {periodShifts.length === 0 ? (
-          <p className="text-sm text-slate-400 text-center py-4">No shifts in this period</p>
-        ) : (
-          <div className="space-y-2">
-            {periodShifts.map(s => (
-              <div key={s.id} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.job.color }} />
-                  <span className="text-slate-600">{s.job.name}</span>
-                  <span className="text-slate-400">
-                    {new Date(s.date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
-                  </span>
-                </div>
-                <div className="flex gap-3 text-right">
-                  <span className="text-slate-500">{s.hoursWorked.toFixed(1)}h</span>
-                  <span className="font-medium text-slate-900">${s.wageEarned.toFixed(2)}</span>
-                </div>
-              </div>
-            ))}
+        <div className="space-y-1">
+          <div className="w-full bg-slate-200 rounded-full h-4 overflow-hidden">
+            <div
+              className="h-4 rounded-full transition-all duration-500"
+              style={{ width: `${data.percentage}%`, backgroundColor: barColor }}
+            />
           </div>
-        )}
+          <p className="text-xs text-slate-500 text-right">{data.percentage}% of 48-hour visa limit</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200">
+          <div>
+            <p className="text-xs text-slate-500">Earned this fortnight</p>
+            <p className="text-lg font-semibold">${data.wageEarned.toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Shifts this fortnight</p>
+            <p className="text-lg font-semibold">{data.shiftCount}</p>
+          </div>
+        </div>
+
+        <p className="text-xs text-slate-400 pt-1">
+          Guide only — verify your exact visa work limits with a registered migration agent or the Department of Home Affairs.
+        </p>
       </CardContent>
     </Card>
   )
