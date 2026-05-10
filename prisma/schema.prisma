@@ -1,0 +1,63 @@
+// This is your Prisma schema file
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id        String   @id
+  email     String   @unique
+  fullName  String?
+  timezone  String   @default("Australia/Melbourne")
+  country   String   @default("AU")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobs   Job[]
+  shifts Shift[]
+}
+
+model Job {
+  id         String  @id @default(cuid())
+  userId     String
+  name       String
+  color      String
+  payType    PayType @default(HOURLY)
+  hourlyRate Float?
+  isActive   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shifts  Shift[]
+}
+
+enum PayType {
+  HOURLY
+  DELIVERY
+}
+
+model Shift {
+  id          String   @id @default(cuid())
+  userId      String
+  jobId       String
+  date        DateTime @db.Date
+  startTime   String
+  endTime     String
+  hoursWorked Float
+  wageEarned  Float
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job     Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
