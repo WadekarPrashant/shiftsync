@@ -1,4 +1,5 @@
 import DashboardNav from '@/components/dashboard/DashboardNav'
+import ChatBot from '@/components/dashboard/ChatBot'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -7,6 +8,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 p-8">
         {children}
       </main>
+      <ChatBot />
     </div>
   )
 }

@@ -57,7 +57,7 @@ export default function GoalsPage() {
   if (loading) return <div className="text-slate-500 text-sm">Loading goals...</div>
   if (!data) return null
 
-  const pastMonths = data.history.filter(h => !h.isCurrentMonth)
+  const pastMonths = (data.history ?? []).filter((h: MonthData) => !h.isCurrentMonth)
 
   return (
     <div className="space-y-6 max-w-2xl">

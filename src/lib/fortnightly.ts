@@ -32,7 +32,6 @@ export function getCurrentFortnight(): FortnightPeriod {
 }
 
 export function getAdjacentFortnight(period: FortnightPeriod, direction: 'prev' | 'next'): FortnightPeriod {
-  const MS_PER_FORTNIGHT = 14 * 24 * 60 * 60 * 1000
   const pivot = direction === 'next'
     ? new Date(period.end.getTime() + 1)
     : new Date(period.start.getTime() - 1)
