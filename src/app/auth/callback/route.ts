@@ -25,18 +25,23 @@ export async function GET(request: NextRequest) {
       }
     )
 
-    const { data: { user } } = await supabase.auth.exchangeCodeForSession(code)
+    try {
+      const { data: { user } } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (user) {
-      await prisma.profile.upsert({
-        where: { id: user.id },
-        update: {},
-        create: {
-          id: user.id,
-          email: user.email!,
-          fullName: user.user_metadata?.full_name ?? null,
-        },
-      })
+      if (user) {
+        await prisma.profile.upsert({
+          where: { id: user.id },
+          update: { email: user.email! },
+          create: {
+            id: user.id,
+            email: user.email!,
+            fullName: user.user_metadata?.full_name ?? null,
+          },
+        })
+      }
+    } catch (err) {
+      console.error('Auth callback error:', err)
+      // Still redirect to dashboard — profile upsert happens in API routes too
     }
   }
 
