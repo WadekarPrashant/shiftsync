@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import FortnightlyTracker from '@/components/dashboard/FortnightlyTracker'
