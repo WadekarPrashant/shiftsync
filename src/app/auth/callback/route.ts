@@ -1,5 +1,4 @@
 import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
@@ -8,17 +7,20 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
 
+  const redirectTo = NextResponse.redirect(`${origin}/dashboard`)
+
   if (code) {
-    const cookieStore = await cookies()
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          getAll() { return cookieStore.getAll() },
+          getAll() {
+            return request.cookies.getAll()
+          },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              redirectTo.cookies.set(name, value, options)
             )
           },
         },
@@ -41,9 +43,8 @@ export async function GET(request: NextRequest) {
       }
     } catch (err) {
       console.error('Auth callback error:', err)
-      // Still redirect to dashboard — profile upsert happens in API routes too
     }
   }
 
-  return NextResponse.redirect(`${origin}/dashboard`)
+  return redirectTo
 }
