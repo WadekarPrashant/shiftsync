@@ -11,7 +11,9 @@ type Holiday = {
 
 function isActive(h: Holiday) {
   const now = new Date()
-  return new Date(h.startDate) <= now && now <= new Date(h.endDate)
+  const end = new Date(h.endDate)
+  end.setHours(23, 59, 59, 999)
+  return new Date(h.startDate) <= now && now <= end
 }
 
 function isUpcoming(h: Holiday) {

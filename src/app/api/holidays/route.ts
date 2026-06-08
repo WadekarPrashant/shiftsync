@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
       name,
       startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      endDate: (() => { const d = new Date(endDate); d.setHours(23, 59, 59, 999); return d })(),
     },
   })
   return NextResponse.json(holiday)
