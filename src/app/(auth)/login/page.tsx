@@ -108,6 +108,10 @@ export default function LoginPage() {
             Continue with Google
           </button>
 
+          <p className="text-center text-xs text-muted-foreground mt-2">
+            Signed up with Google? Use the button above to log back in.
+          </p>
+
           <p className="text-center text-sm text-slate-500 mt-4">
             Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-slate-900 font-medium hover:underline">
