@@ -7,6 +7,8 @@ type TodayData = {
   hoursWorkedFortnight: number
   hoursRemainingFortnight: number
   status: 'safe' | 'warning' | 'danger'
+  holidayMode: boolean
+  activeHolidayName: string | null
 }
 
 export default function TodayTracker() {
@@ -20,6 +22,20 @@ export default function TodayTracker() {
   }, [])
 
   if (!data) return null
+
+  if (data.holidayMode) {
+    return (
+      <div className="rounded-xl border border-green-300 bg-green-50 p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-semibold text-green-800 text-sm">🎉 Holiday Mode — {data.activeHolidayName}</p>
+            <p className="text-xs text-green-600 mt-1">Work as many hours as you like today!</p>
+          </div>
+          <span className="text-xs bg-green-100 text-green-700 border border-green-300 px-2 py-0.5 rounded-full font-medium">Unlimited Hours</span>
+        </div>
+      </div>
+    )
+  }
 
   const statusColor = {
     safe: 'text-green-600',

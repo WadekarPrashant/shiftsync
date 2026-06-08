@@ -16,29 +16,41 @@ export async function GET() {
 
   const userId = session.user.id
 
-  // Rolling 14-day window
   const now = new Date()
   const fortnightAgo = new Date(now)
   fortnightAgo.setDate(fortnightAgo.getDate() - 14)
 
-  // Today's date range (local)
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
   const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
 
-  const [fortnightShifts, todayShifts] = await Promise.all([
+  const [fortnightShifts, todayShifts, holidays] = await Promise.all([
     prisma.shift.findMany({
       where: { userId, date: { gte: fortnightAgo, lte: now } },
     }),
     prisma.shift.findMany({
       where: { userId, date: { gte: todayStart, lte: todayEnd } },
     }),
+    prisma.holidayPeriod.findMany({ where: { userId } }),
   ])
 
-  const hoursWorkedFortnight = fortnightShifts.reduce((sum, s) => sum + s.hoursWorked, 0)
+  // Check if today is in a holiday period
+  const activeHoliday = holidays.find(h =>
+    new Date(h.startDate) <= now && now <= new Date(h.endDate)
+  )
+
+  // Helper: is a date in any holiday?
+  function isInHoliday(date: Date) {
+    return holidays.some(h =>
+      new Date(h.startDate) <= date && date <= new Date(h.endDate)
+    )
+  }
+
+  // Exclude holiday shifts from the visa count
+  const billableShifts = fortnightShifts.filter(s => !isInHoliday(new Date(s.date)))
+  const hoursWorkedFortnight = billableShifts.reduce((sum, s) => sum + s.hoursWorked, 0)
   const hoursWorkedToday = todayShifts.reduce((sum, s) => sum + s.hoursWorked, 0)
   const hoursRemainingFortnight = Math.max(0, 48 - hoursWorkedFortnight)
 
-  // Status
   let status: 'safe' | 'warning' | 'danger' = 'safe'
   if (hoursRemainingFortnight <= 2) status = 'danger'
   else if (hoursRemainingFortnight <= 8) status = 'warning'
@@ -48,5 +60,7 @@ export async function GET() {
     hoursWorkedFortnight: Math.round(hoursWorkedFortnight * 10) / 10,
     hoursRemainingFortnight: Math.round(hoursRemainingFortnight * 10) / 10,
     status,
+    holidayMode: !!activeHoliday,
+    activeHolidayName: activeHoliday?.name ?? null,
   })
 }

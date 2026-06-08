@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard, Briefcase, Clock, CalendarDays, BarChart2, Target, LogOut } from 'lucide-react'
+import { LayoutDashboard, Briefcase, Clock, CalendarDays, BarChart2, Target, Umbrella, LogOut } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart2 },
   { href: '/dashboard/goals', label: 'Goals', icon: Target },
+  { href: '/dashboard/holidays', label: 'Holidays', icon: Umbrella },
 ]
 
 export default function DashboardNav() {

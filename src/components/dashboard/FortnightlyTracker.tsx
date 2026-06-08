@@ -12,6 +12,9 @@ interface FortnightData {
   windowStart: string
   windowEnd: string
   status: 'safe' | 'warning' | 'danger'
+  holidayMode: boolean
+  activeHolidayName: string | null
+  totalHoursIncHoliday: number
 }
 
 export default function FortnightlyTracker() {
@@ -46,55 +49,70 @@ export default function FortnightlyTracker() {
   const statusText = data.status === 'danger' ? 'text-red-700' : data.status === 'warning' ? 'text-yellow-700' : 'text-green-700'
 
   return (
-    <Card className={`border-2 ${statusBg}`}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Fortnightly Visa Hours</CardTitle>
-          <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${statusText} ${statusBg}`}>
-            {statusLabel}
-          </span>
-        </div>
-        <p className="text-xs text-slate-500">{start} — {end} · rolling 14-day window</p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-end justify-between">
+    <div className="space-y-3">
+      {data.holidayMode && (
+        <div className="rounded-xl border border-green-300 bg-green-50 px-4 py-3 flex items-center justify-between">
           <div>
-            <span className="text-5xl font-bold">{data.hoursWorked.toFixed(1)}</span>
-            <span className="text-slate-500 ml-2 text-lg">/ 48 hrs used</span>
+            <p className="font-semibold text-green-800 text-sm">🎉 Holiday Mode — {data.activeHolidayName}</p>
+            <p className="text-xs text-green-600 mt-0.5">Unlimited hours this period</p>
           </div>
-          <div className="text-right">
-            <p className="text-3xl font-bold" style={{ color: barColor }}>
-              {data.hoursRemaining.toFixed(1)} hrs
-            </p>
-            <p className="text-sm text-slate-500">remaining this fortnight</p>
-          </div>
+          <span className="text-xs bg-green-100 text-green-700 border border-green-300 px-2 py-0.5 rounded-full font-medium">Active</span>
         </div>
+      )}
 
-        <div className="space-y-1">
-          <div className="w-full bg-slate-200 rounded-full h-4 overflow-hidden">
-            <div
-              className="h-4 rounded-full transition-all duration-500"
-              style={{ width: `${data.percentage}%`, backgroundColor: barColor }}
-            />
+      <Card className={`border-2 ${statusBg}`}>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Fortnightly Visa Hours</CardTitle>
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${statusText} ${statusBg}`}>
+              {statusLabel}
+            </span>
           </div>
-          <p className="text-xs text-slate-500 text-right">{data.percentage}% of 48-hour visa limit</p>
-        </div>
+          <p className="text-xs text-slate-500">{start} — {end} · rolling 14-day window</p>
+          {data.holidayMode && (
+            <p className="text-xs text-green-600">Hours shown exclude your holiday shifts</p>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-end justify-between">
+            <div>
+              <span className="text-5xl font-bold">{data.hoursWorked.toFixed(1)}</span>
+              <span className="text-slate-500 ml-2 text-lg">/ 48 hrs used</span>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold" style={{ color: barColor }}>
+                {data.hoursRemaining.toFixed(1)} hrs
+              </p>
+              <p className="text-sm text-slate-500">remaining this fortnight</p>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200">
-          <div>
-            <p className="text-xs text-slate-500">Earned this fortnight</p>
-            <p className="text-lg font-semibold">${data.wageEarned.toFixed(2)}</p>
+          <div className="space-y-1">
+            <div className="w-full bg-slate-200 rounded-full h-4 overflow-hidden">
+              <div
+                className="h-4 rounded-full transition-all duration-500"
+                style={{ width: `${data.percentage}%`, backgroundColor: barColor }}
+              />
+            </div>
+            <p className="text-xs text-slate-500 text-right">{data.percentage}% of 48-hour visa limit</p>
           </div>
-          <div>
-            <p className="text-xs text-slate-500">Shifts this fortnight</p>
-            <p className="text-lg font-semibold">{data.shiftCount}</p>
-          </div>
-        </div>
 
-        <p className="text-xs text-slate-400 pt-1">
-          Guide only — verify your exact visa work limits with a registered migration agent or the Department of Home Affairs.
-        </p>
-      </CardContent>
-    </Card>
+          <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200">
+            <div>
+              <p className="text-xs text-slate-500">Earned this fortnight</p>
+              <p className="text-lg font-semibold">${data.wageEarned.toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500">Shifts this fortnight</p>
+              <p className="text-lg font-semibold">{data.shiftCount}</p>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-400 pt-1">
+            Guide only — verify your exact visa work limits with a registered migration agent or the Department of Home Affairs.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
