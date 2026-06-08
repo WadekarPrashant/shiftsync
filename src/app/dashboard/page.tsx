@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import FortnightlyTracker from '@/components/dashboard/FortnightlyTracker'
+import TodayTracker from '@/components/dashboard/TodayTracker'
 import { Card, CardContent } from '@/components/ui/card'
 import { Briefcase, Clock, DollarSign } from 'lucide-react'
 
@@ -69,6 +70,8 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <TodayTracker />
 
       <FortnightlyTracker />
     </div>
